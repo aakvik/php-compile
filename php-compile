@@ -1,0 +1,136 @@
+#! /bin/bash
+
+help_message() {
+    echo "Build php with imagick and mongodb driver"
+    echo ""
+    echo "Usage: ./php-compile -v [php_version]"
+    echo "Needs to be minor version, i.e. 8.1.15"
+}
+
+
+while getopts "hhelp:v:" flag
+do
+    case ${flag} in
+        h|help)
+            help_message
+            exit 0
+            ;;
+        v)
+            php_version=${OPTARG}
+            ;;
+        :)
+            help_message
+            exit 1
+            ;;
+        *)
+            help_message
+            exit 1
+            ;;
+    esac
+done
+
+php_major_version=$(echo ${php_version} | cut -d. -f1,2 )
+prefix=/opt/php${php_major_version}
+
+if [ $# -eq 0 ];
+then
+    help_message
+    exit 0
+else
+    #build php
+
+    rm -rf php-${php_version}
+    wget https://www.php.net/distributions/php-${php_version}.tar.gz -O - | tar zxvf -
+    cd php-${php_version}
+
+    ./configure                                                                   \
+        --prefix=${prefix}                                                        \
+        --with-apxs2                                                              \
+        --with-openssl                                                            \
+        --with-kerberos                                                           \
+        --with-zlib                                                               \
+        --enable-bcmath                                                           \
+        --with-bz2                                                                \
+        --enable-calendar                                                         \
+        --with-curl                                                               \
+        --enable-dba                                                              \
+        --enable-exif                                                             \
+        --with-ffi                                                                \
+        --enable-ftp                                                              \
+        --with-openssl-dir                                                        \
+        --enable-gd                                                               \
+        --with-webp                                                               \
+        --with-jpeg                                                               \
+        --with-xpm                                                                \
+        --with-freetype                                                           \
+        --enable-gd-jis-conv                                                      \
+        --with-gettext                                                            \
+        --with-gmp                                                                \
+        --with-mhash                                                              \
+        --with-imap                                                               \
+        --with-kerberos                                                           \
+        --with-imap-ssl                                                           \
+        --enable-intl                                                             \
+        --with-ldap                                                               \
+        --with-ldap-sasl                                                          \
+        --enable-mbstring                                                         \
+        --with-mysqli                                                             \
+        --with-mysql-sock                                                         \
+        --with-iodbc                                                              \
+        --enable-pcntl                                                            \
+        --with-pdo-pgsql                                                          \
+        --with-pgsql                                                              \
+        --with-libedit                                                            \
+        --with-readline                                                           \
+        --enable-shmop                                                            \
+        --enable-soap                                                             \
+        --enable-sockets                                                          \
+        --with-sodium                                                             \
+        --enable-sysvmsg                                                          \
+        --enable-sysvsem                                                          \
+        --enable-sysvshm                                                          \
+        --with-xsl                                                                \
+        --enable-zend-test                                                        \
+        --with-zip                                                                \
+        --with-pear                                                               \
+        --with-config-file-scan-dir=/etc/php/${php_major_version}/apache2/conf.d  \
+        --with-config-file-path=/etc/php/${php_major_version}/apache2
+
+    rm -rf ${prefix}
+    mkdir -p ${prefix}/usr/lib/apache2/modules
+    mkdir -p ${prefix}/etc/apache2/mods-available
+
+    make -j6
+#    INSTALL_ROOT=/ DESTDIR=/ make install
+    make install
+
+    cd ..
+
+
+    # build imagick and phpize
+
+    rm -rf imagick
+    git clone https://github.com/Imagick/imagick.git
+    cd imagick
+    ${prefix}/bin/phpize
+    ./configure \
+        --with-php-config=${prefix}/bin/php-config
+    make
+    make install
+
+    cd ..
+
+
+    # build mongodb driver
+
+    rm -rf mongo-php-driver
+    git clone https://github.com/mongodb/mongo-php-driver.git
+    cd mongo-php-driver
+    git submodule update --init
+    ${prefix}/bin/phpize
+    ./configure \
+        --with-php-config=${prefix}/bin/php-config
+    make all
+    make install
+
+fi
