@@ -14,7 +14,9 @@ Usage
 ./phpcompile -v [version]
 ```
 Supply the version (has to include build number)
-For example ./phpcompile -v 8.2.2
-
+For example
+```
+./phpcompile -v 8.2.2
+```
 Will build to /opt/php[major-version] i.e. /opt/php8.2
 
