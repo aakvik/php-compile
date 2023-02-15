@@ -30,7 +30,8 @@ do
 done
 
 php_major_version=$(echo ${php_version} | cut -d. -f1,2 )
-prefix=/opt/php${php_major_version}
+
+export prefix=/opt/php${php_major_version}
 
 if [ $# -eq 0 ];
 then
@@ -101,40 +102,35 @@ else
     mkdir -p ${prefix}/etc/apache2/mods-available
 
     make -j6
-#    INSTALL_ROOT=/ DESTDIR=/ make install
     make install
 
     cd ..
-
-
-    # build imagick and phpize
-
-    rm -rf imagick
-    git clone https://github.com/Imagick/imagick.git
-    cd imagick
-    ${prefix}/bin/phpize
-    ./configure \
-        --with-php-config=${prefix}/bin/php-config
-    make
-    make install
-
-    cd ..
-
-
-    # build mongodb driver
-
-    rm -rf mongo-php-driver
-    git clone https://github.com/mongodb/mongo-php-driver.git
-    cd mongo-php-driver
-    git submodule update --init
-    ${prefix}/bin/phpize
-    ./configure \
-        --with-php-config=${prefix}/bin/php-config
-    make all
-    make install
-
+    (
+        # build imagick and phpize
+        rm -rf imagick
+        git clone https://github.com/Imagick/imagick.git
+        (
+            cd imagick
+            ${prefix}/bin/phpize
+            ./configure \
+                --with-php-config=${prefix}/bin/php-config
+            make
+            make install
+        )
+        # build mongodb driver
+        rm -rf mongo-php-driver
+        git clone https://github.com/mongodb/mongo-php-driver.git
+        (
+            cd mongo-php-driver
+            git submodule update --init
+            ${prefix}/bin/phpize
+            ./configure \
+                --with-php-config=${prefix}/bin/php-config
+            make all
+            make install
+        )
+    )
     # copy and rename libphp.so
-
     mkdir ${prefix}/modules
     cp /usr/lib/apache2/modules/libphp.so ${prefix}/modules/libphp${php_major_version}.so
 fi
