@@ -133,4 +133,8 @@ else
     make all
     make install
 
+    # copy and rename libphp.so
+
+    mkdir ${prefix}/modules
+    cp /usr/lib/apache2/modules/libphp.so ${prefix}/modules/libphp${php_major_version}.so
 fi
