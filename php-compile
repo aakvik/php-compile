@@ -111,6 +111,7 @@ else
         git clone https://github.com/Imagick/imagick.git
         (
             cd imagick
+            sed -i 's/@PACKAGE_VERSION@/3.4.4/' php_imagick.h
             ${prefix}/bin/phpize
             ./configure \
                 --with-php-config=${prefix}/bin/php-config
