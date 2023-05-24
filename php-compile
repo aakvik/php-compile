@@ -80,6 +80,7 @@ else
         --with-iodbc                                                              \
         --enable-pcntl                                                            \
         --with-pdo-pgsql                                                          \
+        --with-pdo-mysql                                                          \
         --with-pgsql                                                              \
         --with-libedit                                                            \
         --with-readline                                                           \
@@ -93,7 +94,6 @@ else
         --with-xsl                                                                \
         --enable-zend-test                                                        \
         --with-zip                                                                \
-        --with-pear                                                               \
         --with-config-file-scan-dir=/etc/php/${php_major_version}/apache2/conf.d  \
         --with-config-file-path=/etc/php/${php_major_version}/apache2
 
