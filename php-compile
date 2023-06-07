@@ -130,6 +130,17 @@ else
             make all
             make install
         )
+        # build apcu
+        rm -rf apcu
+        git clone https://github.com/krakjoe/apcu.git
+        (
+            cd apcu
+            ${prefix}/bin/phpize
+            ./configure \
+                --with-php-config=${prefix}/bin/php-config
+            make
+            make install
+        )
     )
     # copy and rename libphp.so
     mkdir ${prefix}/modules
